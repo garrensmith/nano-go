@@ -4,6 +4,7 @@ import (
   "net/http"
   "encoding/json"
   "io/ioutil"
+  "net/url"
 )
 
 type Couch struct {
@@ -66,7 +67,18 @@ func (db *Couch) Alldbs() (dbs []string) {
   return
 }
 
-func (db *Database) get(name string) (doc map[string]interface{}, err error) {
+func (db *Database) GetFor(name string, doc interface{}) (interface{}, error) {
+  body, err := get(db.url + "/" + name)
+
+  if err != nil {
+    return nil, err
+  }
+
+  json.Unmarshal(body, &doc)
+  return doc, nil
+}
+
+func (db *Database) Get(name string) (doc map[string]interface{}, err error) {
   body, err := get(db.url + "/" + name)
 
   if err != nil {
@@ -77,10 +89,26 @@ func (db *Database) get(name string) (doc map[string]interface{}, err error) {
   return
 }
 
+func (db *Database) View(ddoc string, view string, params *url.Values, response interface{}) (err error) {
+  viewUrl := url.URL{ Path: db.url + "/_design/" + ddoc + "/_view/" + view}
+
+  if params != nil {
+    viewUrl.RawQuery = params.Encode()
+  }
+
+  body, err := get(viewUrl.String())
+
+  if err != nil {
+    return
+  }
+
+  err = json.Unmarshal(body, &response)
+  return
+}
+
 func get(url string) (body []byte, err error) {
   resp, err := http.Get(url)
   if err != nil {
-    // handle error
     return
   }
   defer resp.Body.Close()

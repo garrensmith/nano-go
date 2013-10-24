@@ -4,6 +4,7 @@ import (
   "testing"
   "github.com/stretchr/testify/assert"
   "fmt"
+  "net/url"
 )
 
 func TestConnectToDB(t *testing.T) {
@@ -57,7 +58,49 @@ func TestGetDoc(t *testing.T) {
   couch := Setup("http://garren:password@localhost:5984")
   couch.UseDb("avol10")
 
-  doc, err := couch.db.get("19836cb7b7776aa4ebc590492e1e9543")
+  doc, err := couch.db.Get("19836cb7b7776aa4ebc590492e1e9543")
   assert.Nil(t, err)
   assert.Equal(t, doc["_id"], "19836cb7b7776aa4ebc590492e1e9543")
+}
+
+type DocTest struct {
+  Id string `json:"_id"`
+  Rev string `json:"_rev"`
+  Type string `json:"type"`
+  Hello string `json:"hello"`
+}
+
+func TestGetDocMarshalled(t *testing.T) {
+  couch := Setup("http://garren:password@localhost:5984")
+  couch.UseDb("avol10")
+
+  var doc DocTest
+  _, err := couch.db.GetFor("19836cb7b7776aa4ebc590492e1e9543", &doc)
+
+  assert.Nil(t, err)
+  assert.Equal(t, doc.Id, "19836cb7b7776aa4ebc590492e1e9543")
+  assert.Equal(t, doc.Type, "cool-doc")
+  assert.Equal(t, doc.Hello, "world")
+}
+
+type ViewResponse struct {
+  TotalRows int `json:"total_rows"`
+  Rows []interface{} `json:"rows"`
+
+}
+
+func TestGetView(t *testing.T) {
+  couch := Setup("http://garren:password@localhost:5984")
+  couch.UseDb("avol10")
+
+  params := url.Values{
+                        "reduce": []string{"false"},
+                        "include_docs": []string{"true"},
+                      }
+
+  var resp  ViewResponse
+  err := couch.db.View("ddoc", "all", &params, &resp)
+  assert.Nil(t, err)
+
+  assert.Equal(t, len(resp.Rows), 2)
 }
