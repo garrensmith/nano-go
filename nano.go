@@ -5,11 +5,12 @@ import (
   "encoding/json"
   "io/ioutil"
   "net/url"
+  "github.com/bitly/go-simplejson"
 )
 
 type Couch struct {
   url string
-  db Database
+  Db Database
 }
 
 type Database struct {
@@ -45,7 +46,7 @@ func (c *Couch) UseDb(name string) (db Database, err error ) {
   err = nil
   db.name = name
   db.url = c.url + "/" + name
-  c.db = db
+  c.Db = db
   return
 }
 
@@ -101,10 +102,27 @@ func (db *Database) View(ddoc string, view string, params *url.Values, response 
   if err != nil {
     return
   }
-
   err = json.Unmarshal(body, &response)
   return
 }
+
+func (db *Database) View2(ddoc string, view string, params *url.Values) (resp *simplejson.Json, err error) {
+  viewUrl := url.URL{ Path: db.url + "/_design/" + ddoc + "/_view/" + view}
+
+  if params != nil {
+    viewUrl.RawQuery = params.Encode()
+  }
+
+  body, err := get(viewUrl.String())
+
+  if err != nil {
+    return
+  }
+
+  resp, err = simplejson.NewJson(body)
+  return
+}
+
 
 func get(url string) (body []byte, err error) {
   resp, err := http.Get(url)

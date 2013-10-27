@@ -1,0 +1,8 @@
+{
+  "description": "Dev dependancies to use grunt.js for nano.go hacking",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-exec": "~0.4.2"
+  }
+}

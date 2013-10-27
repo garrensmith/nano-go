@@ -58,7 +58,7 @@ func TestGetDoc(t *testing.T) {
   couch := Setup("http://garren:password@localhost:5984")
   couch.UseDb("avol10")
 
-  doc, err := couch.db.Get("19836cb7b7776aa4ebc590492e1e9543")
+  doc, err := couch.Db.Get("19836cb7b7776aa4ebc590492e1e9543")
   assert.Nil(t, err)
   assert.Equal(t, doc["_id"], "19836cb7b7776aa4ebc590492e1e9543")
 }
@@ -75,7 +75,7 @@ func TestGetDocMarshalled(t *testing.T) {
   couch.UseDb("avol10")
 
   var doc DocTest
-  _, err := couch.db.GetFor("19836cb7b7776aa4ebc590492e1e9543", &doc)
+  _, err := couch.Db.GetFor("19836cb7b7776aa4ebc590492e1e9543", &doc)
 
   assert.Nil(t, err)
   assert.Equal(t, doc.Id, "19836cb7b7776aa4ebc590492e1e9543")
@@ -86,7 +86,6 @@ func TestGetDocMarshalled(t *testing.T) {
 type ViewResponse struct {
   TotalRows int `json:"total_rows"`
   Rows []interface{} `json:"rows"`
-
 }
 
 func TestGetView(t *testing.T) {
@@ -99,8 +98,31 @@ func TestGetView(t *testing.T) {
                       }
 
   var resp  ViewResponse
-  err := couch.db.View("ddoc", "all", &params, &resp)
+  err := couch.Db.View("ddoc", "all", &params, &resp)
   assert.Nil(t, err)
 
   assert.Equal(t, len(resp.Rows), 2)
+}
+
+type ViewResponse2 struct {
+  TotalRows int `json:"total_rows"`
+  Rows []map[string]string `json:"rows"`
+}
+
+func TestGetView2(t *testing.T) {
+  couch := Setup("http://garren:password@localhost:5984")
+  couch.UseDb("tickle_development")
+  
+  params := url.Values{ 
+    "reduce": []string{"false"},
+    "include_docs": []string{"true"},
+    "limit": []string{"20"},
+   "startkey": []string{"[\"1\", \"0\"]"},
+   "endkey": []string{"[\"1\", {}]"},
+  }
+
+  resp, err := couch.Db.View2("ActivityItem", "by_organisation_id_and_updated_at", &params)
+  rows, err := resp.Get("rows").Array()
+  assert.Nil(t, err)
+  assert.Equal(t, len(rows), 20)
 }
