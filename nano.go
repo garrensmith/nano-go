@@ -70,11 +70,19 @@ func (db *Couch) Alldbs() (dbs []string) {
   return
 }
 
-/*func (db *Couch) Uuids() (  []string) {
-  body, _ := get(db.url + "/_uuids")
-  json.Unmarshal(body, &dbs)
+func (c *Couch) Uuids(count int) (uuids []string) {
+  var bodyJson map[string][]string
+
+  params := url.Values{ "count": []string {fmt.Sprintf("%d",count)} }
+  uuidUrl := url.URL{ Path: c.url + "/_uuids"}
+  uuidUrl.RawQuery = params.Encode()
+  fmt.Println(uuidUrl.String())
+  body, _ := get(uuidUrl.String())
+  fmt.Println("uu %v", string(body))
+  json.Unmarshal(body, &bodyJson)
+  uuids = bodyJson["uuids"]
   return
-}*/
+}
 
 func (db *Database) GetFor(name string, doc interface{}) (interface{}, error) {
   body, err := get(db.url + "/" + name)

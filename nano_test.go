@@ -147,3 +147,11 @@ func TestGetViewJsonError(t *testing.T) {
   _, err := couch.Db.ViewJson("ActivityItem", "testView", &params)
   assert.Equal(t, err.Error(), "{\"error\":\"query_parse_error\",\"reason\":\"No rows can match your key range, reverse your start_key and end_key or set descending=false\"}\n")
 }
+
+func TestGenerateUUID(t *testing.T) {
+  couch := Setup(couchUrl)
+  couch.UseDb("nano-go-tests")
+  
+  uuid := couch.Uuids(3)
+  assert.Equal(t, len(uuid), 3)
+}
