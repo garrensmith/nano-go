@@ -6,12 +6,16 @@ module.exports = function(grunt) {
       test: {
         cmd: 'go test'
       },
+
+      setup_test: {
+        cmd: 'node test_setup.js'
+      },
     },
 
     watch: {
       scripts: {
         files: ['**/*.go'],
-        tasks: ['exec:test'],
+        tasks: ['exec:setup_test', 'exec:test'],
         options: {
           spawn: false,
         },

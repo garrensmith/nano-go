@@ -5,7 +5,9 @@ import (
   "encoding/json"
   "io/ioutil"
   "net/url"
+  "errors"
   "github.com/bitly/go-simplejson"
+  "fmt"
 )
 
 type Couch struct {
@@ -68,6 +70,12 @@ func (db *Couch) Alldbs() (dbs []string) {
   return
 }
 
+/*func (db *Couch) Uuids() (  []string) {
+  body, _ := get(db.url + "/_uuids")
+  json.Unmarshal(body, &dbs)
+  return
+}*/
+
 func (db *Database) GetFor(name string, doc interface{}) (interface{}, error) {
   body, err := get(db.url + "/" + name)
 
@@ -106,7 +114,7 @@ func (db *Database) View(ddoc string, view string, params *url.Values, response 
   return
 }
 
-func (db *Database) View2(ddoc string, view string, params *url.Values) (resp *simplejson.Json, err error) {
+func (db *Database) ViewJson(ddoc string, view string, params *url.Values) (resp *simplejson.Json, err error) {
   viewUrl := url.URL{ Path: db.url + "/_design/" + ddoc + "/_view/" + view}
 
   if params != nil {
@@ -120,6 +128,11 @@ func (db *Database) View2(ddoc string, view string, params *url.Values) (resp *s
   }
 
   resp, err = simplejson.NewJson(body)
+  fmt.Println("")
+  if _,ok := resp.CheckGet("error"); ok {
+    err = errors.New(string(body))
+  }
+
   return
 }
 
